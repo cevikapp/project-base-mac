@@ -1,13 +1,13 @@
 const mongoose = require("mongoose");
 const schema = mongoose.Schema({
+    name: {type: String, required:true},
     is_active: {type:Boolean, default:true},
     created_by: {
-        type: mongoose.SchemaType.ObjectID,
-        required: true
+        type: mongoose.Schema.Types.ObjectId
     }
 },{
     versionKey:false,
-    timestaps: {
+    timestamps: {
         createdAt: "created_at",
         updatedAt: "updated_at"
     }
@@ -18,4 +18,4 @@ class Categories extends mongoose.Model {
 }
 
 schema.loadClass(Categories);
-module.export = mongoose.model("categories", schema);
+module.exports = mongoose.model("categories", schema);
