@@ -1,13 +1,13 @@
 const mongoose = require("mongoose");
 const schema = mongoose.Schema({
-    email: String,
-    password: String,
-    is_active: Boolean,
+    email: {type: String, required: true, unique:true },
+    password: {type: String, required:true },
+    is_active: {type: Boolean, default: true},
     first_name: String,
     last_name: String,
-    phone_number: String,
+    phone_number: String
 },{
-    timestaps: {
+    timestamps: {
         createdAt: "created_at",
         updatedAt: "updated_at"
     }
@@ -18,4 +18,4 @@ class Users extends mongoose.Model {
 }
 
 schema.loadClass(Users);
-module.export = mongoose.model("users", schema);
+module.exports = mongoose.model("users", schema);
