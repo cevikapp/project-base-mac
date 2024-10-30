@@ -4,17 +4,21 @@ const config = require("../config");
 const Users = require("../db/models/Users");
 const UserRoles = require("../db/models/UserRoles");
 const RolePrivileges = require("../db/models/RolePrivileges");
+const Response = require("./Response");
+const {HTTP_CODES} = require("../config/Enum");
+const CustomError = require("./Error");
+const { log } = require("debug/src/node");
 
 module.exports = function() {
     let strategy = new Strategy({
         secretOrKey: config.JWT.SECRET,
-        jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken
+        jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken()
     }, async (payload, done) => {
         try {
-            let user = await Users.findOne({_id: payload._id});
+            let user = await Users.findOne({_id: payload.id});
 
             if (user) {
-                let userRoles = await UserRoles.find({ user_id: payload._id });
+                let userRoles = await UserRoles.find({ user_id: payload.id });
                 let rolePrivileges = await RolePrivileges.find({ role_id: { $in: userRoles.map(ur => ur.role_id) } });
 
                 done(null, {
@@ -41,6 +45,29 @@ module.exports = function() {
         },
         authenticate: function () {
             return passport.authenticate("jwt", { session: false });
+        },
+        checkRoles: (...expectedRoles) => {
+            return(req, res, next) => {
+                let i= 0;
+                let privileges = req.user.roles.map(x => x.permission);
+                console.log("req.user.roles", req.user.roles);
+                
+                console.log("privileges", privileges);
+                
+
+                while(i<expectedRoles.length && !privileges.includes(expectedRoles[i])) {
+                    i++;
+                } 
+                console.log("expectedRoles", expectedRoles);
+                console.log("expectedRoles", expectedRoles.length);
+                console.log("i", i);
+
+                if(i>=expectedRoles.length) {
+                    let response = Response.errorResponse(new CustomError(HTTP_CODES.UNAUTHORIZED, "Need Permission", "Need Permission"));
+                    return res.status(response.code).json(response);
+                }
+                return next(); //authorized
+            }
         }
     };
 };

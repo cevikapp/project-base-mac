@@ -3,7 +3,11 @@ const moment = require("moment");
 const Response = require("../lib/Response");
 const router = express.Router();
 const AuditLogs = require("../db/models/AuditLogs");
+const auth = require("../lib/auth")();
 
+router.all("*", auth.authenticate(), (req,res,next) => {
+    next();
+});
 
 router.post('/', async (req, res, next) =>{
     
@@ -19,7 +23,7 @@ router.post('/', async (req, res, next) =>{
             skip=0;
         }
 
-        if(typeof body.limit !== "numeric" || body.limit>500){
+        if(typeof body.limit !== "numeric" || body.limit>500){
             limit= 500;
         }
 
