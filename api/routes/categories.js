@@ -6,6 +6,10 @@ const CustomError = require("../lib/Error");
 const Enum = require("../config/Enum");
 const AuditLogs = require("../lib/AuditLogs");
 const logger = require("../lib/logger/LoggerClass");
+const config = require('../config');
+const { log } = require('debug/src/node');
+const i18n =new (require("../lib/i18n"))(config.DEFAULT_LANG);
+const auth = require("../lib/auth")();
 
 /**
  * Create
@@ -14,6 +18,11 @@ const logger = require("../lib/logger/LoggerClass");
  * Delete
  * CRUD
  */
+
+
+router.all("*", auth.authenticate(), (req,res,next) => {
+    next();
+});
 
 /* GET categories listing. */
 router.get('/', async(req, res, next) => {
@@ -31,7 +40,8 @@ router.get('/', async(req, res, next) => {
 router.post("/add", async(req, res) => {
     let body = req.body;
     try {
-        if(!body.name) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "name field must be filled");
+
+        if(!body.name) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR_TITLE", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["name"]));
 
         let category = new Categories({
             name: body.name,
@@ -52,7 +62,8 @@ router.post("/add", async(req, res) => {
     } catch (err) {
         logger.error(req.user?.email, "Categories", "Add", err);
         let errorResponse = Response.errorResponse(err);
-        res.status(err.code || Enum.HTTP_CODES.INT_SERVER_ERROR).json();
+        res.status(err.code || Enum.HTTP_CODES.INT_SERVER_ERROR).json(errorResponse);
+
     }
 })
 
@@ -60,8 +71,7 @@ router.post("/update", async(req,res)=>{
     let body = req.body;
     try {
 
-        if(!body._id) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "name field must be filled");
-
+        if(!body._id) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR_TITLE", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["_id"]));
         let updates = {};
         if(body.name) updates.name = body.name;
         if(typeof body.is_active === "boolean") updates.is_active = body.is_active;
@@ -82,7 +92,7 @@ router.post("/delete", async(req,res) => {
     let body = req.body;
 
     try {
-        if(!body._id) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "name field must be filled");
+        if(!body._id) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR_TITLE", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["_id"]));
 
         await Categories.deleteOne({_id: body._id});
 

@@ -44,7 +44,7 @@ router.post('/', async (req, res, next) =>{
         
         res.json(Response.successResponse(auditLogs));
     } catch (err) {
-        let errorResponse = Response.errorResponse(err);
+        let errorResponse = Response.errorResponse(err, req.user?.language);
         res.status(errorResponse.code).json(errorResponse);
     }
 });
