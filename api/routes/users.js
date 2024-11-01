@@ -15,6 +15,7 @@ const AuditLogs = require("../lib/AuditLogs");
 const auditlogs = require("./auditlogs");
 const auth = require("../lib/auth")();
 const logger = require("../lib/logger/LoggerClass");
+const i18n =new (require("../lib/i18n"))(config.DEFAULT_LANG);
 
 
 router.post("/register", async(req, res)=>{
@@ -81,9 +82,8 @@ router.post("/auth", async(req, res)=>{
     
     let user = await Users.findOne({email});
     
-    if(!user) throw new CustomError(Enum.HTTP_CODES.UNAUTHORIZED, "Validation Error", "Email or password wrong");
-    
-    if (!user.validPassword(password)) throw new CustomError(Enum.HTTP_CODES.UNAUTHORIZED, "Validation Error", "Email or password wrong");
+    if(!user) throw new CustomError(Enum.HTTP_CODES.UNAUTHORIZED, i18n.translate("COMMON.VALIDATION_ERROR_TITLE", req.user?.language), i18n.translate("USERS.AUTH_ERROR", req.user?.language));
+    if (!user.validPassword(password)) throw new CustomError(Enum.HTTP_CODES.UNAUTHORIZED, i18n.translate("COMMON.VALIDATION_ERROR_TITLE", req.user?.language), i18n.translate("USERS.AUTH_ERROR", req.user?.language));
 
     let payload = {
       id: user._id,
@@ -130,23 +130,23 @@ router.post("/add", auth.checkRoles("user_add"), async(req, res)=>{
     const body = req.body;
     console.log("req", req);
 
-    if(!body.email) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "email field must be filled");
+    if(!body.email) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR_TITLE", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["email"]));
 
-    if (!isEmail(body.email)) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "email field must be an email format");
+    if (!isEmail(body.email)) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR_TITLE", req.user?.language), i18n.translate("USERS.EMAIL_FORMAT_ERROR", req.user?.language));
 
-    if(!body.password) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "password field must be filled");
-    
+    if(!body.password) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR_TITLE", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["password"]));
+
     if(body.password.length < Enum.PASS_LENGTH) {
-      throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "password length must be greater than" + Enum.PASS_LENGTH);
+      throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR_TITLE", req.user?.language), i18n.translate("USERS.PASSWORD_LENGHT_ERROR", req.user?.language, [Enum.PASS_LENGTH]));
     }
     if(!body.roles || !Array.isArray(body.roles) || body.roles.length == 0) {
-      throw new CustomError (Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "roles fields must be an array");
+      throw new CustomError (Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR_TITLE", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_TYPE", req.user?.language, ["roles", "Array"]));
     }
 
     let roles = await Roles.find({_id: {$in: body.roles}});
 
     if(roles.length == 0){
-      throw new CustomError (Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "roles fields must be an array");
+      throw new CustomError (Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR_TITLE", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_TYPE", req.user?.language, ["roles", "Array"]));
     }
 
 
@@ -183,7 +183,7 @@ router.post("/update", async(req, res)=>{
   let body = req.body;
   let updates = {};
 
-  if(!body._id) throw new CustomError (Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "_id fields must be filled");
+  if(!body._id) throw new CustomError (Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR_TITLE", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["_id"]));
   try {
     const body = req.body;
     if(body.password && body.password.length < Enum.PASS_LENGTH){
@@ -216,9 +216,9 @@ router.post("/update", async(req, res)=>{
 
     }
 
-    if(!Array.isArray(body.roles) || body.roles.length === 0){
-      throw new CustomError (Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "roles fields must be an array");
-    }
+    // if(!Array.isArray(body.roles) || body.roles.length === 0){
+    //   throw new CustomError (Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "roles fields must be an array");
+    // }
     
     await Users.updateOne({_id: body._id}, updates);
 
@@ -239,7 +239,7 @@ router.post("/delete", auth.checkRoles("user_delete"), async(req, res)=>{
   try {
     let body = req.body;
 
-    if(!body._id) throw new CustomError (Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "_id fields must be filled");
+    if(!body._id) throw new CustomError (Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR_TITLE", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["_id"]));
 
     await Users.deleteOne({_id: body._id});
 

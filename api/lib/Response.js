@@ -1,5 +1,7 @@
 const Enum = require("../config/Enum");
 const CustomError = require("./Error");
+const config = require("../config");
+const i18n = new (require("./i18n"))(config.DEFAULT_LANG);
 
 class Response {
     constructor() {}
@@ -9,7 +11,7 @@ class Response {
             data
         }
     }
-    static errorResponse (error){
+    static errorResponse (error, lang){
         console.error(error);
         if (error instanceof CustomError){
             return{
@@ -23,8 +25,8 @@ class Response {
             return{
                 code: Enum.HTTP_CODES.CONFLICT,
                 error: {
-                    message: "Already Exist!",
-                    description: "Already Exist"
+                    message: i18n.translate("COMMON.ALREADY_EXIST", lang),
+                    description: i18n.translate("COMMON.ALREADY_EXIST", lang)
                 }
             }
         }
@@ -33,7 +35,7 @@ class Response {
         return{
             code: Enum.HTTP_CODES.INT_SERVER_ERROR,
             error: {
-                message: "Unknown Error!",
+                message: i18n.translate("COMMON.UNKNOWN_ERROR", lang),
                 description: error.message
             }
         }
