@@ -111,10 +111,16 @@ router.all("*", auth.authenticate(), (req,res,next) => {
 
 /* GET users listing. */
 
-router.get('/', async(req, res, next) => {
+router.get('/', auth.checkRoles("user_view"), async(req, res, next) => {
   const body = req.body;
   try {
-    let users = await Users.find({});
+    let users = await Users.find({}, {password: 0}).lean();
+
+    for (let i=0; i<users.length; i++) {
+      let roles = await UserRoles.find({user_id: users[i]._id}).populate("role_id");
+      users[i].roles = roles;
+    }
+
     res.json(Response.successResponse(users));
   } catch (err) {
     let errorResponse = Response.errorResponse(err);
