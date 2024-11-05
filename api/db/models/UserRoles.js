@@ -1,12 +1,16 @@
 const mongoose = require("mongoose");
+const Roles = require("./Roles");
+const Users = require("./Users");
 const schema = mongoose.Schema({
     role_id: {
         type: mongoose.Schema.Types.ObjectId,
-        required: true
+        required: true,
+        ref: Roles
     },
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
-        required: true
+        required: true,
+        ref: Users
     }
 },{
     versionKey:false,
