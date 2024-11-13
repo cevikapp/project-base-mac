@@ -8,6 +8,7 @@ const Enum = require("../config/Enum");
 const role_privileges = require("../config/role_privileges");
 const { log } = require("debug/src/node");
 const config = require("../config");
+const UserRoles = require("../db/models/UserRoles");
 const auth = require("../lib/auth")();
 const i18n =new (require("../lib/i18n"))(config.DEFAULT_LANG);
 
@@ -71,11 +72,24 @@ router.post("/add", auth.checkRoles("role_add"), async(req, res) => {
     }
 });
 
-router.post("/update", async(req, res) => {
+router.post("/update", auth.checkRoles("role_update"), async(req, res) => {
     let body = req.body;
+    console.log("body", body);
+    console.log("role id", req?.user);
+    
+    
     try {
 
         if(!body._id) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR_TITLE", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["_id"]));
+
+        let userRolex = await UserRoles.findOne({user_id: req.user.id, role_id: body._id});
+
+        console.log("userRolex", userRolex);
+        
+
+        if(userRolex) {
+            throw new CustomError (Enum.HTTP_CODES.FORBIDDEN, i18n.translate("COMMON.NEED_PERMISSIONS", req.user?.language), i18n.translate("COMMON.NEED_PERMISSIONS", req.user?.language))
+        }
         
         let updates = {};
         if(body.role_name) updates.role_name = body.role_name;
